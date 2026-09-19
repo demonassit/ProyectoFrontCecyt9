@@ -9,6 +9,7 @@ export default function DetalleTaller() {
 
   const [taller, setTaller] = useState(null);
   const [asistencias, setAsistencias] = useState([]);
+  const [errorAsistencias, setErrorAsistencias] = useState(null);
   const [nombreAlumno, setNombreAlumno] = useState('');
   const [boleta, setBoleta] = useState('');
   const [mensaje, setMensaje] = useState('');
@@ -25,7 +26,13 @@ export default function DetalleTaller() {
 
     const resAsistencias = await fetch(`${API_URL}/api/talleres/${id}/asistencias`);
     const dataAsistencias = await resAsistencias.json();
-    setAsistencias(dataAsistencias);
+
+    if (resAsistencias.ok) {
+      setAsistencias(dataAsistencias);
+      setErrorAsistencias(null);
+    } else {
+      setErrorAsistencias(dataAsistencias.error || 'No se pudo cargar la lista de asistentes');
+    }
   }
 
   async function registrarAsistencia(e) {
@@ -86,13 +93,17 @@ export default function DetalleTaller() {
       {mensaje && <p className="mensaje">{mensaje}</p>}
 
       <h2>Alumnos registrados</h2>
-      <ul>
-        {asistencias.map((a) => (
-          <li key={a.id}>
-            {a.nombre_alumno} — Boleta: {a.boleta}
-          </li>
-        ))}
-      </ul>
+      {errorAsistencias ? (
+        <p className="error">{errorAsistencias}</p>
+      ) : (
+        <ul>
+          {asistencias.map((a) => (
+            <li key={a.id}>
+              {a.nombre_alumno} — Boleta: {a.boleta}
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }

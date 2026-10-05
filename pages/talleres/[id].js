@@ -13,6 +13,7 @@ export default function DetalleTaller() {
   const [nombreAlumno, setNombreAlumno] = useState('');
   const [boleta, setBoleta] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [registroOk, setRegistroOk] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -24,11 +25,15 @@ export default function DetalleTaller() {
     const dataTaller = await resTaller.json();
     setTaller(dataTaller);
 
-    const resAsistencias = await fetch(`${API_URL}/api/talleres/${id}/asistencias`);
+    // La lista con nombres y boletas solo la ve el administrador (requiere sesión)
+    const resAsistencias = await fetch(`${API_URL}/api/talleres/${id}/asistencias`, { credentials: 'include' });
     const dataAsistencias = await resAsistencias.json();
 
     if (resAsistencias.ok) {
       setAsistencias(dataAsistencias);
+      setErrorAsistencias(null);
+    } else if (resAsistencias.status === 401 || resAsistencias.status === 403) {
+      setAsistencias(null);
       setErrorAsistencias(null);
     } else {
       setErrorAsistencias(dataAsistencias.error || 'No se pudo cargar la lista de asistentes');
@@ -45,6 +50,7 @@ export default function DetalleTaller() {
       body: JSON.stringify({ taller_id: id, nombre_alumno: nombreAlumno, boleta }),
     });
 
+    setRegistroOk(res.ok);
     if (res.ok) {
       setMensaje('Asistencia registrada correctamente');
       setNombreAlumno('');
@@ -64,6 +70,8 @@ export default function DetalleTaller() {
     );
   }
 
+  const cupoLleno = taller.cupo != null && taller.asistentes >= taller.cupo;
+
   return (
     <main className="contenedor">
       <h1>{taller.nombre}</h1>
@@ -71,31 +79,39 @@ export default function DetalleTaller() {
       <p>Fecha: {taller.fecha}</p>
       <p>Asistentes registrados: {taller.asistentes} / {taller.cupo}</p>
 
-      <form onSubmit={registrarAsistencia} className="formulario">
-        <h2>Registrar asistencia</h2>
-        <input
-          type="text"
-          placeholder="Nombre completo"
-          value={nombreAlumno}
-          onChange={(e) => setNombreAlumno(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Boleta"
-          value={boleta}
-          onChange={(e) => setBoleta(e.target.value)}
-          required
-        />
-        <button type="submit">Registrar</button>
-      </form>
+      {cupoLleno ? (
+        <p className="error">Este taller ya no tiene cupo disponible.</p>
+      ) : (
+        <form onSubmit={registrarAsistencia} className="formulario">
+          <h2>Registrar asistencia</h2>
+          <input
+            type="text"
+            placeholder="Nombre completo"
+            value={nombreAlumno}
+            onChange={(e) => setNombreAlumno(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Boleta (10 dígitos)"
+            inputMode="numeric"
+            pattern="\d{10}"
+            maxLength={10}
+            title="La boleta debe tener exactamente 10 dígitos"
+            value={boleta}
+            onChange={(e) => setBoleta(e.target.value)}
+            required
+          />
+          <button type="submit">Registrar</button>
+        </form>
+      )}
 
-      {mensaje && <p className="mensaje">{mensaje}</p>}
+      {mensaje && <p className={registroOk ? 'mensaje' : 'error'}>{mensaje}</p>}
 
-      <h2>Alumnos registrados</h2>
+      {asistencias !== null && <h2>Alumnos registrados</h2>}
       {errorAsistencias ? (
         <p className="error">{errorAsistencias}</p>
-      ) : (
+      ) : asistencias !== null && (
         <ul>
           {asistencias.map((a) => (
             <li key={a.id}>

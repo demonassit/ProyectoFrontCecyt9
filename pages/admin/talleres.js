@@ -54,6 +54,9 @@ export default function AdminTalleres() {
       setFecha('');
       setCupo('');
       cargarTalleres();
+    } else if (res.status === 401) {
+      // La sesión expiró (2 h sin actividad): volver a iniciar sesión
+      router.push('/login');
     } else {
       const data = await res.json();
       setMensaje(`Error: ${data.error}`);
@@ -68,6 +71,9 @@ export default function AdminTalleres() {
 
     if (res.ok) {
       cargarTalleres();
+    } else if (res.status === 401) {
+      // La sesión expiró (2 h sin actividad): volver a iniciar sesión
+      router.push('/login');
     } else {
       const data = await res.json();
       setMensaje(`Error: ${data.error}`);
@@ -85,6 +91,9 @@ export default function AdminTalleres() {
     if (res.ok) {
       setEditandoId(null);
       cargarTalleres();
+    } else if (res.status === 401) {
+      // La sesión expiró (2 h sin actividad): volver a iniciar sesión
+      router.push('/login');
     } else {
       const data = await res.json();
       setMensaje(`Error: ${data.error}`);

@@ -13,11 +13,10 @@ export default function Nav() {
     cargarSesion();
   }, [router.asPath]);
 
-  async function cargarSesion() {
+  function cargarSesion() {
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
-      const data = await res.json();
-      setUsuario(data.usuario);
+      const guardado = localStorage.getItem('usuario');
+      setUsuario(guardado ? JSON.parse(guardado) : null);
     } catch {
       setUsuario(null);
     } finally {

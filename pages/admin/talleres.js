@@ -18,11 +18,11 @@ export default function AdminTalleres() {
     verificarSesion();
   }, []);
 
-  async function verificarSesion() {
-    const res = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
-    const data = await res.json();
+  function verificarSesion() {
+    const guardado = localStorage.getItem('usuario');
+    const usuario = guardado ? JSON.parse(guardado) : null;
 
-    if (data.usuario?.rol !== 'admin') {
+    if (usuario?.rol !== 'admin') {
       router.push('/login');
       return;
     }

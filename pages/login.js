@@ -21,6 +21,9 @@ export default function Login() {
     });
 
     if (res.ok) {
+      const data = await res.json();
+      // Se guarda el usuario para no tener que preguntarle al servidor en cada página
+      localStorage.setItem('usuario', JSON.stringify(data));
       router.push('/admin/talleres');
     } else {
       const data = await res.json();
